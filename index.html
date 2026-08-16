@@ -7,24 +7,25 @@
 <meta name="description" content="在 iPhone 上把 ChatGPT 對話存成檔案。裝一次，之後每則對話右下角都有一顆存檔按鈕。">
 <style>
   :root {
-    --paper: #f6f8f7;
+    --paper: #f8f7fd;
     --card: #ffffff;
-    --ink: #141a1f;
-    --slate: #5b6b73;
-    --line: #dbe2e1;
-    --signal: #0f6d5e;
+    --ink: #2f2b47;
+    --slate: #6f6a8d;
+    --line: #e6e2f4;
+    --signal: #8b7ed8;
+    --signal-2: #7fc0e8;
     --signal-ink: #ffffff;
-    --amber-bg: #fdf6e8;
-    --amber-line: #e6d3a8;
-    --amber-ink: #7a5210;
-    --code-bg: #eef2f1;
+    --amber-bg: #eef4fc;
+    --amber-line: #cfe0f2;
+    --amber-ink: #4a6285;
+    --code-bg: #f1eefb;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper: #0e1316; --card: #161d21; --ink: #e7ecea; --slate: #94a5a9;
-      --line: #263137; --signal: #3fae99; --signal-ink: #06201c;
-      --amber-bg: #241d10; --amber-line: #4a3a1c; --amber-ink: #e0be7d;
-      --code-bg: #10171a;
+      --paper: #16152a; --card: #1e1c36; --ink: #e9e6f7; --slate: #a49fc4;
+      --line: #2e2b4c; --signal: #a99ce8; --signal-2: #8ecdf0; --signal-ink: #1a1830;
+      --amber-bg: #1c2438; --amber-line: #32415e; --amber-ink: #a9c4e4;
+      --code-bg: #201e3a;
     }
   }
   * { box-sizing: border-box; }
@@ -35,7 +36,7 @@
   }
   .wrap { max-width: 34rem; margin: 0 auto; padding: 2.4rem 1.15rem 4rem; display: flex; flex-direction: column; gap: 1.7rem; }
   header { display: flex; flex-direction: column; gap: .5rem; }
-  .eyebrow { font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--slate); font-weight: 600; }
+  .eyebrow { font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--signal); font-weight: 600; }
   h1 {
     font-family: Georgia, "Noto Serif TC", "Songti TC", serif;
     font-weight: 600; font-size: 2rem; line-height: 1.25; margin: 0;
@@ -45,12 +46,13 @@
   .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .9rem; counter-reset: step; }
   .steps li {
     counter-increment: step; background: var(--card); border: 1px solid var(--line);
-    border-radius: 4px; padding: 1.05rem 1.05rem 1.1rem 3.1rem; position: relative;
+    border-radius: 14px; padding: 1.05rem 1.05rem 1.1rem 3.1rem; position: relative;
   }
   .steps li::before {
     content: counter(step); position: absolute; left: 1rem; top: 1.05rem;
     width: 1.5rem; height: 1.5rem; border-radius: 50%;
-    background: var(--signal); color: var(--signal-ink);
+    background: linear-gradient(135deg, var(--signal), var(--signal-2));
+    color: var(--signal-ink);
     font-size: .82rem; font-weight: 700; font-variant-numeric: tabular-nums;
     display: grid; place-items: center;
   }
@@ -60,27 +62,29 @@
   .btn {
     display: block; text-align: center; text-decoration: none;
     font-weight: 700; font-size: 1rem;
-    color: var(--signal-ink); background: var(--signal);
-    border-radius: 6px; padding: .85rem 1rem;
+    color: var(--signal-ink);
+    background: linear-gradient(135deg, var(--signal), var(--signal-2));
+    border-radius: 999px; padding: .85rem 1rem;
+    box-shadow: 0 3px 12px rgba(139, 126, 216, .28);
     -webkit-tap-highlight-color: transparent;
   }
   .btn:active { filter: brightness(1.08); }
   .btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
   .path {
     font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .84rem;
-    background: var(--code-bg); border: 1px solid var(--line); border-radius: 3px;
-    padding: .55rem .7rem; color: var(--ink); overflow-x: auto; white-space: nowrap;
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: .6rem .75rem; color: var(--ink); overflow-x: auto; white-space: nowrap;
   }
   .note {
     background: var(--amber-bg); border: 1px solid var(--amber-line); border-left-width: 3px;
-    border-radius: 4px; padding: .9rem 1rem; color: var(--amber-ink); font-size: .93rem;
+    border-radius: 14px; padding: 1rem 1.1rem; color: var(--amber-ink); font-size: .93rem;
   }
   .note p { margin: 0; }
   .note p + p { margin-top: .5rem; }
   .note strong { color: var(--amber-ink); }
   section.faq { display: flex; flex-direction: column; gap: .6rem; }
   section.faq h2 { font-size: 1.05rem; margin: .4rem 0 0; }
-  details { background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: .8rem 1rem; }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .8rem 1rem; }
   summary { cursor: pointer; font-weight: 600; font-size: .95rem; }
   summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
   details p { margin: .6rem 0 0; color: var(--slate); font-size: .93rem; }
@@ -154,9 +158,7 @@
   </section>
 
   <footer>
-    <p>腳本原始碼：<a href="https://gist.github.com/Minijinai75/d9b0a1ba98794731f69db45435738084">GitHub Gist</a>（可以自己看它做了什麼）</p>
-    <p>Stay 官方：<a href="https://github.com/shenruisi/Stay">shenruisi/Stay</a></p>
-    <p>由 Minijin 的 AI 團隊製作。</p>
+    <p>由 Minijin 的工程師 承曦 製作。</p>
   </footer>
 
 </div>
