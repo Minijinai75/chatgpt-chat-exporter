@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatGPT 對話匯出（Stay / 油猴通用）
 // @namespace    https://github.com/Minijinai75
-// @version      1.3.0
+// @version      1.3.2
 // @description  在 ChatGPT 對話頁右下角放一顆按鈕，一鍵把整串對話存成 Markdown。走官方 API 拿完整內容，不受「捲到哪才載到哪」影響；沒有捷徑那種時間上限，長對話也能慢慢跑完。
 // @author       承曦（for Mini）
 // @match        https://chatgpt.com/*
@@ -31,7 +31,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "1.3.0";
+  var VERSION = "1.3.2";
   var BTN_ID = "mini-gpt-export-btn";
   var FMT_ID = "mini-gpt-export-fmt";
   var FMT_KEY = "mini-gpt-export-format";
@@ -146,24 +146,39 @@
   // 26-08-17 真機證據：GPTs 的名字就掛在頁面最上面那顆帶下拉箭頭的按鈕上（截圖：「任宇成 ˅」），
   // 但 v1.2.1 只找 h1 / data-testid，兩條都落空。**名字在畫面上，是我找錯地方。**
   // 改成照它實際的樣子找：掃頂部區域的按鈕與標題，濾掉介面字，取**最靠近頁面頂端**的那個。
-  var NAME_NOISE = /^(ChatGPT|打開|開啟|分享|Share|新交談|新聊天|New chat|登入|註冊|Log ?in|Sign ?up|升級|Upgrade|更多|More|取消|Cancel|完成|Done|\d+|)$/i;
+  var NAME_NOISE = new RegExp(
+    "^(ChatGPT|打開|開啟|分享|Share|新交談|新聊天|New chat|登入|註冊|Log ?in|Sign ?up|" +
+    "升級|Upgrade|更多|More|取消|Cancel|完成|Done|" +
+    // 26-08-17 真機撈到「開啟側邊欄」才補的一組：介面控制項的無障礙標籤
+    "開啟側邊欄|關閉側邊欄|側邊欄|Open sidebar|Close sidebar|Toggle sidebar|" +
+    "暫時聊天|Temporary chat|模型選擇器|Model selector|選單|Menu|" +
+    "\\d+|)$", "i"
+  );
 
   function nameCandidates() {
+    // 26-08-17：v1.3.1 回報「畫面上也沒有候選」，但名字明明在畫面上——
+    // ChatGPT 那條頂欄不是 <header> 標籤，是 main 裡一塊 sticky 的 div。選擇器照現場補。
     var nodes = document.querySelectorAll(
       'header button, header h1, header [role="button"], ' +
-      'main h1, main > div button, [class*="header"] button, [data-testid*="gizmo"], [id*="conversation-header"] button'
+      'main h1, main > div button, [class*="header"] button, [data-testid*="gizmo"], ' +
+      '[id*="conversation-header"] button, [class*="sticky"] button, [class*="sticky"] [role="button"], ' +
+      '#page-header button, [data-testid*="conversation"] button'
     );
     var seen = {}, out = [], i, el, t, rect;
     for (i = 0; i < nodes.length; i++) {
       el = nodes[i];
-      t = (el.innerText || el.textContent || "").replace(/\s+/g, " ").trim();
+      // **只認 innerText，不 fallback textContent**：純圖示按鈕裡常藏一個給讀螢幕軟體用的
+      // 隱藏標籤（實例：左上角側邊欄鍵藏著「開啟側邊欄」），textContent 撈得到、但那不是畫面上的字。
+      // v1.3.0 就是這樣把介面按鈕當成 GPT 名字寫進檔案的。
+      t = (el.innerText || "").replace(/\s+/g, " ").trim();
       if (!t || t.length > 40 || NAME_NOISE.test(t) || seen[t]) continue;
-      rect = el.getBoundingClientRect ? el.getBoundingClientRect() : { top: 9999 };
-      if (rect.top > 400) continue; // 只認頁面上緣那一帶，避免撈到對話內容裡的按鈕
+      rect = el.getBoundingClientRect ? el.getBoundingClientRect() : { top: 9999, left: 9999, width: 0 };
+      if (rect.top > 400) continue;     // 只認頁面上緣那一帶
+      if (rect.left < 24) continue;     // 貼齊最左的多半是側邊欄／返回這類控制項，不是名字
       seen[t] = true;
-      out.push({ text: t, top: rect.top });
+      out.push({ text: t, top: rect.top, left: rect.left });
     }
-    out.sort(function (a, b) { return a.top - b.top; });
+    out.sort(function (a, b) { return a.top - b.top || a.left - b.left; });
     return out;
   }
 
@@ -172,13 +187,16 @@
     return list.length ? list[0].text : null;
   }
 
-  function resolveAssistantName(data) {
+  // 26-08-17 真機回報：這支 API 回 **HTTP 401**——它要 Bearer token，而拿對話內容那發明明帶了、
+  // 查名字這發卻漏帶。**同一個網域、同一組憑證，兩發卻不一致，錯在我沒把 token 傳下來。**
+  function resolveAssistantName(data, token) {
     var fromData = data && (data.gizmo_name || (data.gizmo && data.gizmo.display && data.gizmo.display.name));
     if (typeof fromData === "string" && fromData.trim()) {
       return Promise.resolve({ name: fromData.trim(), from: "對話資料" });
     }
     var id = gizmoIdFromUrl() || (data && data.conversation_template_id) || (data && data.gizmo_id);
     if (!id) return Promise.resolve({ name: "ChatGPT", from: "一般對話" });
+    var headers = token ? { Authorization: "Bearer " + token } : {};
 
     // 失敗要留線索：**沒取到的時候，把畫面上看到的候選一起寫進檔頭**——
     // 26-08-16 那次「沒取到」只留了一個 gizmo id，等於什麼都沒說，白費一次真機。
@@ -188,7 +206,7 @@
       return { name: "ChatGPT", from: "沒取到（" + why + "；畫面上也沒有候選）" };
     }
 
-    return fetchJson("/backend-api/gizmos/" + id, { credentials: "include" }, 8000)
+    return fetchJson("/backend-api/gizmos/" + id, { credentials: "include", headers: headers }, 8000)
       .then(function (res) {
         var n = nameFromGizmoPayload(res);
         if (n) return { name: n, from: "GPTs 資料" };
@@ -507,13 +525,16 @@
     // 已經交出檔案之後就不准再走退路——**不然下載失敗會被當成 API 失敗，落一份殘缺的畫面版**
     var delivered = false;
 
+    var accessToken = null;
+
     fetchJson("/api/auth/session", { credentials: "include" })
       .then(function (session) {
         if (!session || !session.accessToken) throw new Error("拿不到登入憑證（請確認已登入）");
+        accessToken = session.accessToken; // 查 GPTs 名字那發也要用它，別讓兩發憑證不一致
         setState(btn, "讀取對話…", true);
         return fetchJson("/backend-api/conversation/" + id, {
           credentials: "include",
-          headers: { Authorization: "Bearer " + session.accessToken },
+          headers: { Authorization: "Bearer " + accessToken },
         });
       })
       .then(function (data) {
@@ -521,7 +542,7 @@
         if (!turns.length) throw new Error("API 回來了但沒有可讀的訊息");
         var name = (data && data.title) || title;
         setState(btn, "查名稱…", true);
-        return resolveAssistantName(data).then(function (assistant) {
+        return resolveAssistantName(data, accessToken).then(function (assistant) {
           delivered = true;
           finish(btn, name, turns, "API（完整）", "", started, assistant);
         });
@@ -535,7 +556,7 @@
           flash(btn, "失敗：" + (err && err.message ? err.message : "不明原因"), 5000);
           return;
         }
-        resolveAssistantName(null).then(function (assistant) {
+        resolveAssistantName(null, accessToken).then(function (assistant) {
           finish(
             btn, title, turns, "畫面（可能不完整）",
             "這份是從畫面抓的，**可能不完整**：ChatGPT 只把可視區附近的訊息留在頁面上（本次抓到 "
