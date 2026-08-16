@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatGPT 對話匯出（Stay / 油猴通用）
 // @namespace    https://github.com/Minijinai75
-// @version      1.2.0
+// @version      1.2.1
 // @description  在 ChatGPT 對話頁右下角放一顆按鈕，一鍵把整串對話存成 Markdown。走官方 API 拿完整內容，不受「捲到哪才載到哪」影響；沒有捷徑那種時間上限，長對話也能慢慢跑完。
 // @author       承曦（for Mini）
 // @match        https://chatgpt.com/*
@@ -31,7 +31,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "1.2.0";
+  var VERSION = "1.2.1";
   var BTN_ID = "mini-gpt-export-btn";
   var FMT_ID = "mini-gpt-export-fmt";
   var FMT_KEY = "mini-gpt-export-format";
@@ -398,18 +398,20 @@
     btn.type = "button";
     btn.textContent = "存對話";
     btn.setAttribute("aria-label", "把這串對話存成 Markdown");
+    // 配色沿用 Minijin 的 --home-* 色票（淡紫 #cfc2ef／天藍 #93c5e8，深一階給白字撐對比）
     btn.style.cssText = [
       "position:fixed",
       "right:16px",
       "bottom:calc(88px + env(safe-area-inset-bottom))",
       "z-index:2147483000",
-      "padding:10px 16px",
+      "padding:11px 18px",
       "border:none",
       "border-radius:999px",
-      "background:#0f6d5e",
-      "color:#fff",
-      "font:600 15px/1.2 -apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif",
-      "box-shadow:0 4px 14px rgba(0,0,0,.28)",
+      "background:linear-gradient(135deg,#8171af,#5d89b5)",
+      "color:#fffdfc",
+      "font:800 15px/1.2 'Noto Sans TC','Yu Gothic UI',-apple-system,sans-serif",
+      "letter-spacing:.02em",
+      "box-shadow:0 10px 22px rgba(81,101,142,.32)",
       "cursor:pointer",
       "-webkit-tap-highlight-color:transparent",
     ].join(";");
@@ -428,15 +430,16 @@
     chip.style.cssText = [
       "position:fixed",
       "right:16px",
-      "bottom:calc(132px + env(safe-area-inset-bottom))",
+      "bottom:calc(136px + env(safe-area-inset-bottom))",
       "z-index:2147483000",
-      "padding:4px 10px",
-      "border:1px solid rgba(255,255,255,.35)",
+      "padding:5px 12px",
+      "border:1px solid rgba(207,194,239,.9)",
       "border-radius:999px",
-      "background:rgba(15,109,94,.85)",
-      "color:#fff",
-      "font:600 12px/1.2 -apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif",
+      "background:#f1ebff",
+      "color:#8171af",
+      "font:700 12px/1.2 'Noto Sans TC','Yu Gothic UI',-apple-system,sans-serif",
       "letter-spacing:.04em",
+      "box-shadow:0 6px 14px rgba(81,101,142,.18)",
       "cursor:pointer",
       "-webkit-tap-highlight-color:transparent",
     ].join(";");
