@@ -123,6 +123,25 @@
   .btn:active { filter: brightness(1.06); }
   .btn:focus-visible { outline: 3px solid var(--home-lavender-dark); outline-offset: 3px; }
 
+  .shot {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 12px;
+    border-radius: 16px;
+    border: 1px solid var(--home-line);
+    box-shadow: var(--home-shadow);
+    background: #fffdfc;
+  }
+
+  figure { margin: 0; }
+  figcaption {
+    margin-top: 8px;
+    color: var(--home-muted);
+    font-size: 0.86rem;
+    text-align: center;
+  }
+
   .path {
     font-family: var(--home-mono);
     font-size: 0.84rem;
@@ -197,15 +216,33 @@
 
     <li>
       <h2>安裝腳本</h2>
-      <p>用 Safari 打開下面這個連結，Stay 會跳出來問你要不要安裝，按確定就好。</p>
+      <p>用 Safari 打開下面這個連結，會看到一頁程式碼，<strong>右下角有一顆 Install</strong>，按下去就裝好了。</p>
       <a class="btn" href="https://gist.github.com/Minijinai75/d9b0a1ba98794731f69db45435738084/raw/chatgpt-export.user.js">安裝對話備份腳本</a>
+      <figure>
+        <img class="shot" src="img/step-install.jpeg" alt="Safari 打開腳本頁面後，右下角出現 Install 按鈕" loading="lazy" width="900" height="1643">
+        <figcaption>畫面看起來只是一堆程式碼，別緊張——按右下角那顆 Install。</figcaption>
+      </figure>
     </li>
 
     <li>
       <h2>回 ChatGPT 用用看</h2>
-      <p>打開任何一則對話，右下角會出現「存對話」。上面那顆小標籤是選檔案格式的，點一下可以在 TXT 和 MD 之間換，選了會記住。</p>
+      <p>打開任何一則對話，右下角會出現兩顆按鈕：</p>
+      <figure>
+        <img class="shot" src="img/step-buttons.jpeg" alt="ChatGPT 頁面右下角出現「存成 TXT」與「存對話」兩顆按鈕" loading="lazy" width="900" height="612">
+        <figcaption>上面那顆選格式，下面那顆才是存檔。</figcaption>
+      </figure>
+      <p><strong>存對話</strong>：按下去就開始，存好會顯示「已存 47 則 ✓」。<br>
+         <strong>存成 TXT</strong>：點一下換成 MD，再點換回來，選了會記住。</p>
     </li>
   </ol>
+
+  <div class="note">
+    <p><strong>不想用了怎麼辦？</strong>不必刪除——打開 Stay，在「用戶腳本」裡把它的開關關掉就好，按鈕就不會再出現。想用的時候再打開，不用重裝。</p>
+    <figure>
+      <img class="shot" src="img/step-disable.jpeg" alt="Stay 的用戶腳本清單，每支腳本右邊有開關" loading="lazy" width="900" height="711">
+      <figcaption>右邊那個開關就是它的電源。</figcaption>
+    </figure>
+  </div>
 
   <div class="note">
     <p><strong>它為什麼要用 Stay，不做成捷徑？</strong>因為 iOS 捷徑對「在網頁上執行 JavaScript」有時間上限，長對話跑不完就會被整格判失敗——連錯在哪都看不到。腳本活在網頁裡就沒有這個限制。</p>
