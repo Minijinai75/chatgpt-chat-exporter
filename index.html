@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ChatGPT 對話備份</title>
+<meta name="description" content="在 iPhone 上把 ChatGPT 對話存成檔案。裝一次，之後每則對話右下角都有一顆存檔按鈕。">
+<style>
+  :root {
+    --paper: #f6f8f7;
+    --card: #ffffff;
+    --ink: #141a1f;
+    --slate: #5b6b73;
+    --line: #dbe2e1;
+    --signal: #0f6d5e;
+    --signal-ink: #ffffff;
+    --amber-bg: #fdf6e8;
+    --amber-line: #e6d3a8;
+    --amber-ink: #7a5210;
+    --code-bg: #eef2f1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0e1316; --card: #161d21; --ink: #e7ecea; --slate: #94a5a9;
+      --line: #263137; --signal: #3fae99; --signal-ink: #06201c;
+      --amber-bg: #241d10; --amber-line: #4a3a1c; --amber-ink: #e0be7d;
+      --code-bg: #10171a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+    font-size: 17px; line-height: 1.65; -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 34rem; margin: 0 auto; padding: 2.4rem 1.15rem 4rem; display: flex; flex-direction: column; gap: 1.7rem; }
+  header { display: flex; flex-direction: column; gap: .5rem; }
+  .eyebrow { font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--slate); font-weight: 600; }
+  h1 {
+    font-family: Georgia, "Noto Serif TC", "Songti TC", serif;
+    font-weight: 600; font-size: 2rem; line-height: 1.25; margin: 0;
+    text-wrap: balance; letter-spacing: -.01em;
+  }
+  .lede { margin: 0; color: var(--slate); }
+  .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .9rem; counter-reset: step; }
+  .steps li {
+    counter-increment: step; background: var(--card); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1.05rem 1.05rem 1.1rem 3.1rem; position: relative;
+  }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 1rem; top: 1.05rem;
+    width: 1.5rem; height: 1.5rem; border-radius: 50%;
+    background: var(--signal); color: var(--signal-ink);
+    font-size: .82rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    display: grid; place-items: center;
+  }
+  .steps h2 { margin: 0 0 .3rem; font-size: 1.02rem; font-weight: 700; }
+  .steps p { margin: 0 0 .7rem; color: var(--slate); font-size: .94rem; }
+  .steps p:last-child { margin-bottom: 0; }
+  .btn {
+    display: block; text-align: center; text-decoration: none;
+    font-weight: 700; font-size: 1rem;
+    color: var(--signal-ink); background: var(--signal);
+    border-radius: 6px; padding: .85rem 1rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active { filter: brightness(1.08); }
+  .btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .path {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .84rem;
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 3px;
+    padding: .55rem .7rem; color: var(--ink); overflow-x: auto; white-space: nowrap;
+  }
+  .note {
+    background: var(--amber-bg); border: 1px solid var(--amber-line); border-left-width: 3px;
+    border-radius: 4px; padding: .9rem 1rem; color: var(--amber-ink); font-size: .93rem;
+  }
+  .note p { margin: 0; }
+  .note p + p { margin-top: .5rem; }
+  .note strong { color: var(--amber-ink); }
+  section.faq { display: flex; flex-direction: column; gap: .6rem; }
+  section.faq h2 { font-size: 1.05rem; margin: .4rem 0 0; }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: .8rem 1rem; }
+  summary { cursor: pointer; font-weight: 600; font-size: .95rem; }
+  summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+  details p { margin: .6rem 0 0; color: var(--slate); font-size: .93rem; }
+  footer { border-top: 1px solid var(--line); padding-top: 1.1rem; font-size: .84rem; color: var(--slate); }
+  footer p { margin: 0 0 .4rem; }
+  footer a { color: var(--signal); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="eyebrow">iPhone · Safari</span>
+    <h1>ChatGPT 對話備份</h1>
+    <p class="lede">裝好之後，每則 ChatGPT 對話的右下角都會出現一顆「存對話」的按鈕，按一下就把整串對話存成檔案。裝一次就好，不用每次操作。</p>
+  </header>
+
+  <ol class="steps">
+    <li>
+      <h2>安裝 Stay</h2>
+      <p>Stay 是 Safari 的擴充功能管理器，負責讓下面那支腳本在 ChatGPT 網頁上跑起來。免費版就夠用。</p>
+      <a class="btn" href="https://apps.apple.com/app/id1591620171">前往 App Store</a>
+    </li>
+
+    <li>
+      <h2>去設定裡把它打開</h2>
+      <p>這步最多人漏掉——裝完 App 還要自己允許它讀 ChatGPT 的頁面，否則腳本不會動。</p>
+      <p class="path">設定 → App → Safari → 擴充功能 → Stay → 開啟</p>
+      <p>同一頁裡把 chatgpt.com 的權限設成「允許」。</p>
+    </li>
+
+    <li>
+      <h2>安裝腳本</h2>
+      <p>用 Safari 打開下面這個連結，Stay 會跳出來問你要不要安裝，按確定就好。</p>
+      <a class="btn" href="https://gist.github.com/Minijinai75/d9b0a1ba98794731f69db45435738084/raw/chatgpt-export.user.js">安裝對話備份腳本</a>
+    </li>
+
+    <li>
+      <h2>回 ChatGPT 用用看</h2>
+      <p>打開任何一則對話，右下角會出現「存對話」。上面那顆小標籤是選檔案格式的，點一下可以在 TXT 和 MD 之間換，選了會記住。</p>
+    </li>
+  </ol>
+
+  <div class="note">
+    <p><strong>它為什麼要用 Stay，不做成捷徑？</strong>因為 iOS 捷徑對「在網頁上執行 JavaScript」有時間上限，長對話跑不完就會被整格判失敗——連錯在哪都看不到。腳本活在網頁裡就沒有這個限制。</p>
+    <p><strong>它會拿到什麼？</strong>只有你自己那則對話的內容，而且整個過程都在你的手機上，沒有任何東西被送到別的地方。</p>
+  </div>
+
+  <section class="faq">
+    <h2>遇到狀況</h2>
+
+    <details>
+      <summary>右下角沒有按鈕</summary>
+      <p>先確認第 2 步做了：設定 → App → Safari → 擴充功能 → Stay 要是開啟，而且 chatgpt.com 的權限是「允許」。都對的話重新整理一次頁面，按鈕大約一秒內會出現。</p>
+    </details>
+
+    <details>
+      <summary>存下來的檔案打不開</summary>
+      <p>把格式切成 TXT（按鈕上方那顆小標籤），TXT 在 iPhone 上任何 App 都打得開。內容本身是 Markdown 寫法，貼進筆記軟體會自動排版。</p>
+    </details>
+
+    <details>
+      <summary>檔案裡寫著「可能不完整」</summary>
+      <p>那代表腳本沒能走官方那條路，改從畫面上抓——而 ChatGPT 只把你看得到的那幾則放在頁面裡，所以會缺。通常是登入狀態過期了，重新登入再存一次就會拿到完整的。</p>
+    </details>
+
+    <details>
+      <summary>怎麼知道自己裝的是哪一版</summary>
+      <p>打開存下來的檔案，最上面有一行「腳本: userscript v?.?.?」。回報問題時把那行一起附上，會省很多來回。</p>
+    </details>
+  </section>
+
+  <footer>
+    <p>腳本原始碼：<a href="https://gist.github.com/Minijinai75/d9b0a1ba98794731f69db45435738084">GitHub Gist</a>（可以自己看它做了什麼）</p>
+    <p>Stay 官方：<a href="https://github.com/shenruisi/Stay">shenruisi/Stay</a></p>
+    <p>由 Minijin 的 AI 團隊製作。</p>
+  </footer>
+
+</div>
+</body>
+</html>
