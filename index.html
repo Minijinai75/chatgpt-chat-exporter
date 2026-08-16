@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ChatGPT 對話備份</title>
-<meta name="description" content="在 iPhone 上把 ChatGPT 對話存成檔案。裝一次，之後每則對話右下角都有一顆存檔按鈕。">
+<meta name="description" content="把 ChatGPT 對話存成檔案。iPhone 配 Stay、Android 配竄改猴，裝一次之後每則對話右下角都有一顆存檔按鈕。">
 <style>
   /* 色票與質感沿用 Minijin 既有的 stpreset-viewer 設計系統（--home-*），
      不另調一組「很像」的——同一個人的東西該長得像同一家。 */
@@ -25,6 +25,7 @@
     --home-mono: "Fira Code", "Cascadia Code", Consolas, monospace;
     --tint-blue: #e8f6ff;
     --tint-lavender: #f1ebff;
+    --tint-mint: #e9f8f3;
   }
 
   * { box-sizing: border-box; }
@@ -77,6 +78,37 @@
 
   .lede { margin: 0; color: var(--home-muted); font-size: 0.98rem; }
 
+  /* ── 平台切換：使用者一開始就該知道自己看的是哪一套 */
+  .picker {
+    display: flex;
+    gap: 8px;
+    padding: 6px;
+    border-radius: 999px;
+    background: rgba(255, 253, 252, 0.7);
+    border: 1px solid var(--home-line);
+    box-shadow: var(--home-shadow);
+  }
+
+  .picker button {
+    flex: 1;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 12px;
+    font: 800 0.96rem/1.2 var(--home-sans);
+    color: var(--home-muted);
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .picker button[aria-selected="true"] {
+    background: linear-gradient(135deg, var(--home-lavender-dark), var(--home-blue-dark));
+    color: #fffdfc;
+    box-shadow: 0 6px 16px rgba(81, 101, 142, 0.22);
+  }
+
+  .picker button:focus-visible { outline: 3px solid var(--home-lavender-dark); outline-offset: 3px; }
+
   .steps {
     list-style: none; margin: 0; padding: 0;
     display: flex; flex-direction: column; gap: 14px;
@@ -122,24 +154,13 @@
   }
   .btn:active { filter: brightness(1.06); }
   .btn:focus-visible { outline: 3px solid var(--home-lavender-dark); outline-offset: 3px; }
-
-  .shot {
-    display: block;
-    width: 100%;
-    height: auto;
-    margin-top: 12px;
-    border-radius: 16px;
-    border: 1px solid var(--home-line);
-    box-shadow: var(--home-shadow);
-    background: #fffdfc;
-  }
-
-  figure { margin: 0; }
-  figcaption {
-    margin-top: 8px;
-    color: var(--home-muted);
-    font-size: 0.86rem;
-    text-align: center;
+  .btn.ghost {
+    background: var(--tint-lavender);
+    color: var(--home-lavender-dark);
+    border: 1px solid rgba(207, 194, 239, 0.9);
+    box-shadow: none;
+    margin-top: 10px;
+    font-size: 0.94rem;
   }
 
   .path {
@@ -152,6 +173,17 @@
     color: var(--home-ink);
     overflow-x: auto; white-space: nowrap;
   }
+
+  .shot {
+    display: block; width: 100%; height: auto;
+    margin-top: 12px;
+    border-radius: 16px;
+    border: 1px solid var(--home-line);
+    box-shadow: var(--home-shadow);
+    background: #fffdfc;
+  }
+  figure { margin: 0; }
+  figcaption { margin-top: 8px; color: var(--home-muted); font-size: 0.86rem; text-align: center; }
 
   .note {
     border: 1px solid rgba(207, 194, 239, 0.75);
@@ -189,64 +221,108 @@
     font-size: 0.86rem;
   }
   footer p { margin: 0; }
+
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <div class="shell">
 
   <header>
-    <span class="eyebrow">iPhone · Safari</span>
+    <span class="eyebrow">iPhone · Android</span>
     <h1>ChatGPT 對話備份</h1>
     <p class="lede">裝好之後，每則 ChatGPT 對話的右下角都會出現一顆「存對話」的按鈕，按一下就把整串對話存成檔案。裝一次就好，不用每次操作。</p>
   </header>
 
-  <ol class="steps">
-    <li>
-      <h2>安裝 Stay</h2>
-      <p>Stay 是 Safari 的擴充功能管理器，負責讓下面那支腳本在 ChatGPT 網頁上跑起來。免費版就夠用。</p>
-      <a class="btn" href="https://apps.apple.com/app/id1591620171">前往 App Store</a>
-    </li>
+  <div class="picker" role="tablist" aria-label="選擇你的手機">
+    <button type="button" id="tab-ios" role="tab" aria-selected="true" aria-controls="panel-ios">iPhone</button>
+    <button type="button" id="tab-android" role="tab" aria-selected="false" aria-controls="panel-android">Android</button>
+  </div>
 
-    <li>
-      <h2>去設定裡把它打開</h2>
-      <p>這步最多人漏掉——裝完 App 還要自己允許它讀 ChatGPT 的頁面，否則腳本不會動。</p>
-      <p class="path">設定 → App → Safari → 擴充功能 → Stay → 開啟</p>
-      <p>同一頁裡把 chatgpt.com 的權限設成「允許」。</p>
-    </li>
+  <!-- ───────────────────────────── iPhone -->
+  <div id="panel-ios" role="tabpanel" aria-labelledby="tab-ios">
+    <ol class="steps">
+      <li>
+        <h2>安裝 Stay</h2>
+        <p>Stay 是 Safari 的擴充功能管理器，負責讓下面那支腳本在 ChatGPT 網頁上跑起來。免費版就夠用。</p>
+        <a class="btn" href="https://apps.apple.com/app/id1591620171">前往 App Store</a>
+      </li>
 
-    <li>
-      <h2>安裝腳本</h2>
-      <p>用 Safari 打開下面這個連結，會看到一頁程式碼，<strong>右下角有一顆 Install</strong>，按下去就裝好了。</p>
-      <a class="btn" href="https://gist.github.com/Minijinai75/d9b0a1ba98794731f69db45435738084/raw/chatgpt-export.user.js">安裝對話備份腳本</a>
-      <figure>
-        <img class="shot" src="img/step-install.jpeg" alt="Safari 打開腳本頁面後，右下角出現 Install 按鈕" loading="lazy" width="900" height="1643">
-        <figcaption>畫面看起來只是一堆程式碼，別緊張——按右下角那顆 Install。</figcaption>
-      </figure>
-    </li>
+      <li>
+        <h2>去設定裡把它打開</h2>
+        <p>這步最多人漏掉——裝完 App 還要自己允許它讀 ChatGPT 的頁面，否則腳本不會動。</p>
+        <p class="path">設定 → App → Safari → 擴充功能 → Stay → 開啟</p>
+        <p>同一頁裡把 chatgpt.com 的權限設成「允許」。</p>
+      </li>
 
-    <li>
-      <h2>回 ChatGPT 用用看</h2>
-      <p>打開任何一則對話，右下角會出現兩顆按鈕：</p>
-      <figure>
-        <img class="shot" src="img/step-buttons.jpeg" alt="ChatGPT 頁面右下角出現「存成 TXT」與「存對話」兩顆按鈕" loading="lazy" width="900" height="612">
-        <figcaption>上面那顆選格式，下面那顆才是存檔。</figcaption>
-      </figure>
-      <p><strong>存對話</strong>：按下去就開始，存好會顯示「已存 47 則 ✓」。<br>
-         <strong>存成 TXT</strong>：點一下換成 MD，再點換回來，選了會記住。</p>
-    </li>
-  </ol>
+      <li>
+        <h2>安裝腳本</h2>
+        <p>用 Safari 打開下面這個連結，會看到一頁程式碼，<strong>右下角有一顆 Install</strong>，按下去就裝好了。</p>
+        <a class="btn" href="https://gist.github.com/Minijinai75/d9b0a1ba98794731f69db45435738084/raw/chatgpt-export.user.js">安裝對話備份腳本</a>
+        <figure>
+          <img class="shot" src="img/step-install.jpeg" alt="Safari 打開腳本頁面後，右下角出現 Install 按鈕" loading="lazy" width="900" height="1643">
+          <figcaption>畫面看起來只是一堆程式碼，別緊張——按右下角那顆 Install。</figcaption>
+        </figure>
+      </li>
 
-  <div class="note">
-    <p><strong>不想用了怎麼辦？</strong>不必刪除——打開 Stay，在「用戶腳本」裡把它的開關關掉就好，按鈕就不會再出現。想用的時候再打開，不用重裝。</p>
-    <figure>
-      <img class="shot" src="img/step-disable.jpeg" alt="Stay 的用戶腳本清單，每支腳本右邊有開關" loading="lazy" width="900" height="711">
-      <figcaption>右邊那個開關就是它的電源。</figcaption>
-    </figure>
+      <li>
+        <h2>回 ChatGPT 用用看</h2>
+        <p>打開任何一則對話，右下角會出現兩顆按鈕：</p>
+        <figure>
+          <img class="shot" src="img/step-buttons.jpeg" alt="ChatGPT 頁面右下角出現「存成 TXT」與「存對話」兩顆按鈕" loading="lazy" width="900" height="612">
+          <figcaption>上面那顆選格式，下面那顆才是存檔。</figcaption>
+        </figure>
+        <p><strong>存對話</strong>：按下去就開始，存好會顯示「已存 47 則 ✓」。<br>
+           <strong>存成 TXT</strong>：點一下換成 MD，再點換回來，選了會記住。</p>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ───────────────────────────── Android -->
+  <div id="panel-android" role="tabpanel" aria-labelledby="tab-android" hidden>
+    <ol class="steps">
+      <li>
+        <h2>先換一個瀏覽器</h2>
+        <p><strong>手機版 Chrome 裝不了擴充功能</strong>，所以這件事得換瀏覽器做。推薦 Firefox——它的附加元件裡就有竄改猴，不必另外找。</p>
+        <a class="btn" href="https://play.google.com/store/apps/details?id=org.mozilla.firefox">下載 Firefox</a>
+        <p style="margin-top:12px">已經在用 Kiwi Browser 的人不用換，它也裝得了。</p>
+      </li>
+
+      <li>
+        <h2>裝竄改猴（Tampermonkey）</h2>
+        <p>在 Firefox 裡：右下角<strong>選單 → 擴充套件</strong>，找到 Tampermonkey 按加入。它就是幫你跑腳本的那個管理器。</p>
+        <a class="btn" href="https://addons.mozilla.org/zh-TW/android/addon/tampermonkey/">開啟竄改猴的附加元件頁</a>
+        <p style="margin-top:12px">Kiwi Browser 的人改從 Chrome 線上應用程式商店搜「Tampermonkey」安裝。</p>
+      </li>
+
+      <li>
+        <h2>安裝腳本</h2>
+        <p><strong>用剛剛那個瀏覽器</strong>打開下面的連結（不要用 Chrome 開，Chrome 沒有竄改猴），竄改猴會跳出安裝畫面，按安裝就好。</p>
+        <a class="btn" href="https://gist.github.com/Minijinai75/d9b0a1ba98794731f69db45435738084/raw/chatgpt-export.user.js">安裝對話備份腳本</a>
+      </li>
+
+      <li>
+        <h2>回 ChatGPT 用用看</h2>
+        <p>在同一個瀏覽器裡打開 chatgpt.com，開任何一則對話，右下角會出現兩顆按鈕——上面那顆選檔案格式（TXT／MD），下面那顆「存對話」才是存檔。存好會顯示「已存 47 則 ✓」。</p>
+        <figure>
+          <img class="shot" src="img/step-buttons.jpeg" alt="ChatGPT 頁面右下角出現「存成 TXT」與「存對話」兩顆按鈕" loading="lazy" width="900" height="612">
+          <figcaption>圖是 iPhone 拍的，Android 上長得一樣。</figcaption>
+        </figure>
+      </li>
+    </ol>
   </div>
 
   <div class="note">
-    <p><strong>它為什麼要用 Stay，不做成捷徑？</strong>因為 iOS 捷徑對「在網頁上執行 JavaScript」有時間上限，長對話跑不完就會被整格判失敗——連錯在哪都看不到。腳本活在網頁裡就沒有這個限制。</p>
+    <p><strong>為什麼要裝一個管理器，不能直接用？</strong>因為腳本要跟著 ChatGPT 的網頁一起跑，而瀏覽器不會平白讓外面的程式進到網頁裡——Stay 和竄改猴就是負責把它接進去的人。它們是同一種東西，只是 iPhone 和 Android 各用各的。</p>
     <p><strong>它會拿到什麼？</strong>只有你自己那則對話的內容，而且整個過程都在你的手機上，沒有任何東西被送到別的地方。</p>
+  </div>
+
+  <div class="note" id="disable">
+    <p><strong>不想用了怎麼辦？</strong>不必刪除——打開 Stay 或竄改猴，在腳本清單裡把它的開關關掉就好，按鈕就不會再出現。想用的時候再打開，不用重裝。</p>
+    <figure>
+      <img class="shot" src="img/step-disable.jpeg" alt="Stay 的用戶腳本清單，每支腳本右邊有開關" loading="lazy" width="900" height="711">
+      <figcaption>右邊那個開關就是它的電源（圖為 Stay，竄改猴也有同樣的開關）。</figcaption>
+    </figure>
   </div>
 
   <section class="faq">
@@ -254,12 +330,14 @@
 
     <details>
       <summary>右下角沒有按鈕</summary>
-      <p>先確認第 2 步做了：設定 → App → Safari → 擴充功能 → Stay 要是開啟，而且 chatgpt.com 的權限是「允許」。都對的話重新整理一次頁面，按鈕大約一秒內會出現。</p>
+      <p><strong>iPhone</strong>：先確認第 2 步做了——設定 → App → Safari → 擴充功能 → Stay 要是開啟，而且 chatgpt.com 的權限是「允許」。<br>
+         <strong>Android</strong>：確認你是用裝了竄改猴的那個瀏覽器開 ChatGPT，不是 Chrome。<br>
+         都對的話重新整理一次頁面，按鈕大約一秒內會出現。</p>
     </details>
 
     <details>
       <summary>存下來的檔案打不開</summary>
-      <p>把格式切成 TXT（按鈕上方那顆小標籤），TXT 在 iPhone 上任何 App 都打得開。內容本身是 Markdown 寫法，貼進筆記軟體會自動排版。</p>
+      <p>把格式切成 TXT（按鈕上方那顆小標籤），TXT 在手機上任何 App 都打得開。內容本身是 Markdown 寫法，貼進筆記軟體會自動排版。</p>
     </details>
 
     <details>
@@ -278,5 +356,33 @@
   </footer>
 
 </div>
+
+<script>
+  (function () {
+    var tabs = {
+      ios: { btn: document.getElementById("tab-ios"), panel: document.getElementById("panel-ios") },
+      android: { btn: document.getElementById("tab-android"), panel: document.getElementById("panel-android") },
+    };
+
+    function select(which) {
+      Object.keys(tabs).forEach(function (k) {
+        var on = k === which;
+        tabs[k].btn.setAttribute("aria-selected", on ? "true" : "false");
+        tabs[k].panel.hidden = !on;
+      });
+      try { localStorage.setItem("gpt-export-platform", which); } catch (e) {}
+    }
+
+    Object.keys(tabs).forEach(function (k) {
+      tabs[k].btn.addEventListener("click", function () { select(k); });
+    });
+
+    // 預設用猜的：記住的選擇 > 這台裝置看起來像什麼 > iPhone
+    var saved = null;
+    try { saved = localStorage.getItem("gpt-export-platform"); } catch (e) {}
+    if (saved === "ios" || saved === "android") select(saved);
+    else if (/Android/i.test(navigator.userAgent)) select("android");
+  })();
+</script>
 </body>
 </html>
