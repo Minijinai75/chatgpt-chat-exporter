@@ -250,9 +250,9 @@
 
       <li>
         <h2>去設定裡把它打開</h2>
-        <p>這步最多人漏掉——裝完 App 還要自己允許它讀 ChatGPT 的頁面，否則腳本不會動。</p>
+        <p>這步最多人漏掉——裝完 App 還要自己允許它讀網頁，否則腳本不會動。</p>
         <p class="path">設定 → App → Safari → 擴充功能 → Stay → 開啟</p>
-        <p>同一頁裡把 chatgpt.com 的權限設成「允許」。</p>
+        <p>然後在同一頁的<strong>權限</strong>裡，把<strong>「所有網站」改成［允許］</strong>。只開單一網站常常不夠——按鈕沒出現，十次有九次是卡在這裡。</p>
       </li>
 
       <li>
@@ -262,6 +262,13 @@
         <figure>
           <img class="shot" src="img/step-install.jpeg" alt="Safari 打開腳本頁面後，右下角出現 Install 按鈕" loading="lazy" width="900" height="1643">
           <figcaption>畫面看起來只是一堆程式碼，別緊張——按右下角那顆 Install。</figcaption>
+        </figure>
+
+        <p style="margin-top:16px"><strong>沒看到 Install 按鈕？</strong>（iOS 26 有人遇到）改用手動加，一樣快：</p>
+        <p>長按上面那顆按鈕<strong>複製連結</strong> → 打開 <strong>Stay</strong> → 右上角 <strong>＋</strong> → 選<strong>「通過鏈接」</strong> → 貼上、安裝。</p>
+        <figure>
+          <img class="shot" src="img/step-add-via-link.jpeg" alt="Stay 的添加用戶腳本面板，右上角加號與「通過鏈接」選項" loading="lazy" width="900" height="1947">
+          <figcaption>右上角的 ＋，然後選「通過鏈接」。</figcaption>
         </figure>
       </li>
 
@@ -330,9 +337,14 @@
 
     <details>
       <summary>右下角沒有按鈕</summary>
-      <p><strong>iPhone</strong>：先確認第 2 步做了——設定 → App → Safari → 擴充功能 → Stay 要是開啟，而且 chatgpt.com 的權限是「允許」。<br>
+      <p><strong>iPhone 先查權限</strong>——這是最常見的原因：設定 → App → Safari → 擴充功能 → Stay，確認是開啟的，而且<strong>權限裡的「所有網站」要設成［允許］</strong>。只允許單一網站常常不夠。<br>
          <strong>Android</strong>：確認你是用裝了竄改猴的那個瀏覽器開 ChatGPT，不是 Chrome。<br>
-         都對的話重新整理一次頁面，按鈕大約一秒內會出現。</p>
+         改完回 ChatGPT 重新整理一次，按鈕大約一秒內會出現。</p>
+    </details>
+
+    <details>
+      <summary>安裝時看不到 Install 按鈕（iOS 26）</summary>
+      <p>有些版本的 Safari 不會跳出安裝按鈕。改用手動加就好：長按安裝連結<strong>複製連結</strong>，打開 Stay，按<strong>右上角 ＋</strong>，選<strong>「通過鏈接」</strong>，把連結貼上去安裝。裝完的東西跟按 Install 完全一樣。</p>
     </details>
 
     <details>
